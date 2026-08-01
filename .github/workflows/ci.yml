@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} / Symfony ${{ matrix.symfony }} / Illuminate ${{ matrix.illuminate }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Lowest supported combination.
+          - php: '8.2'
+            symfony: '6.4.*'
+            illuminate: '^11.0'
+          - php: '8.3'
+            symfony: '7.*'
+            illuminate: '^12.0'
+          - php: '8.4'
+            symfony: '8.*'
+            illuminate: '^13.0'
+          # Newest across the board.
+          - php: '8.5'
+            symfony: '8.*'
+            illuminate: '^13.0'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite
+          coverage: none
+
+      - name: Pin Symfony and Illuminate versions
+        run: |
+          composer require --no-update --no-interaction \
+            "symfony/config:${{ matrix.symfony }}" \
+            "symfony/console:${{ matrix.symfony }}" \
+            "symfony/dependency-injection:${{ matrix.symfony }}" \
+            "symfony/http-kernel:${{ matrix.symfony }}" \
+            "illuminate/database:${{ matrix.illuminate }}" \
+            "illuminate/filesystem:${{ matrix.illuminate }}"
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-lock
+
+      - name: Run tests
+        run: vendor/bin/phpunit
