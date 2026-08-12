@@ -50,6 +50,7 @@ final class DatabaseContractsTest extends TestCase
             'selectOne',
             'select',
             'getPdo',
+            'disconnect',
             'reconnect',
         ], $connectionMethods);
         self::assertEqualsCanonicalizing(['hasTable', 'hasColumn'], $schemaMethods);
@@ -81,6 +82,7 @@ final class DatabaseContractsTest extends TestCase
         $connection->expects(self::once())->method('select')
             ->with('select * from users', [], false)->willReturn($rows);
         $connection->expects(self::once())->method('getPdo')->willReturn($pdo);
+        $connection->expects(self::once())->method('disconnect');
         $connection->expects(self::once())->method('reconnect')->willReturn(false);
 
         $adapter = new DatabaseConnectionAdapter($connection);
@@ -93,6 +95,7 @@ final class DatabaseContractsTest extends TestCase
         self::assertSame($selected, $adapter->selectOne('select * from users where id = ?', [7], false));
         self::assertSame($rows, $adapter->select('select * from users', [], false));
         self::assertSame($pdo, $adapter->getPdo());
+        $adapter->disconnect();
         self::assertFalse($adapter->reconnect());
     }
 
@@ -125,6 +128,7 @@ final class DatabaseContractsTest extends TestCase
             'selectOne',
             'select',
             'getPdo',
+            'disconnect',
             'reconnect',
         ]);
         $this->assertCompatibleMethods(SchemaInspectorAdapter::class, SchemaBuilder::class, [
@@ -148,7 +152,7 @@ final class DatabaseContractsTest extends TestCase
         self::assertFalse($inspector->hasColumn('pc_tags', 'missing'));
     }
 
-    public function testGetPdoReturnsNullAfterDisconnectWithoutReconnecting(): void
+    public function testDisconnectReleasesPdoAndQueriesReconnect(): void
     {
         $capsule = new Capsule();
         $capsule->addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
@@ -157,9 +161,11 @@ final class DatabaseContractsTest extends TestCase
 
         self::assertInstanceOf(PDO::class, $adapter->getPdo());
 
-        $connection->disconnect();
+        $adapter->disconnect();
 
         self::assertNull($adapter->getPdo());
+        self::assertEquals((object) ['value' => 1], $adapter->selectOne('select 1 as value'));
+        self::assertInstanceOf(PDO::class, $adapter->getPdo());
     }
 
     /**

@@ -63,6 +63,11 @@ final readonly class DatabaseConnectionAdapter implements DatabaseConnection
         return $this->connection->getPdo();
     }
 
+    public function disconnect(): void
+    {
+        $this->connection->disconnect();
+    }
+
     public function reconnect(): mixed
     {
         return $this->connection->reconnect();

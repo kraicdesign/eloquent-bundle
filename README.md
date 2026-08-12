@@ -103,6 +103,8 @@ For application services, prefer `DatabaseConnection`. It exposes the commonly
 used query and transaction operations together with `getSchemaBuilder()`, whose
 `SchemaInspector` result provides `hasTable()` and `hasColumn()` without coupling
 callers to Illuminate's large concrete connection and schema-builder classes.
+It also exposes `disconnect()` to release the underlying PDO; later queries
+transparently reconnect when needed.
 
 ```php
 use Kraicdesign\EloquentBundle\Contract\DatabaseConnection;
@@ -125,6 +127,10 @@ exactly as before. The focused contracts are intentionally not wrappers around
 the entire Illuminate query API: `table()` returns
 `Illuminate\Database\Query\Builder`, and `raw()` returns
 `Illuminate\Database\Query\Expression` by design.
+
+Adding `disconnect()` in v1.2.0 is additive for consumers, but technically
+breaking for external implementations of `DatabaseConnection`, which must add
+the new method.
 
 ### Eloquent models
 

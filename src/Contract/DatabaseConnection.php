@@ -46,6 +46,8 @@ interface DatabaseConnection
 
     public function getPdo(): ?PDO;
 
+    public function disconnect(): void;
+
     /** @return mixed|false */
     public function reconnect(): mixed;
 }
