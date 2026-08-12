@@ -17,17 +17,46 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Lowest supported combination.
+          # PHP 8.2 supports Symfony 6.4/7 and Illuminate 11/12.
           - php: '8.2'
+            symfony: '6.4.*'
+            illuminate: '^11.0'
+          - php: '8.2'
+            symfony: '6.4.*'
+            illuminate: '^12.0'
+          - php: '8.2'
+            symfony: '7.*'
+            illuminate: '^12.0'
+
+          # PHP 8.3 adds Illuminate 13 coverage.
+          - php: '8.3'
             symfony: '6.4.*'
             illuminate: '^11.0'
           - php: '8.3'
             symfony: '7.*'
             illuminate: '^12.0'
+          - php: '8.3'
+            symfony: '7.*'
+            illuminate: '^13.0'
+
+          # PHP 8.4 adds Symfony 8 coverage.
+          - php: '8.4'
+            symfony: '6.4.*'
+            illuminate: '^11.0'
+          - php: '8.4'
+            symfony: '7.*'
+            illuminate: '^12.0'
           - php: '8.4'
             symfony: '8.*'
             illuminate: '^13.0'
-          # Newest across the board.
+
+          # Verify the same supported dependency generations on PHP 8.5.
+          - php: '8.5'
+            symfony: '6.4.*'
+            illuminate: '^11.0'
+          - php: '8.5'
+            symfony: '7.*'
+            illuminate: '^12.0'
           - php: '8.5'
             symfony: '8.*'
             illuminate: '^13.0'

@@ -7,6 +7,10 @@ namespace Kraicdesign\EloquentBundle\Tests\DependencyInjection;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionInterface;
+use Kraicdesign\EloquentBundle\Adapter\DatabaseConnectionAdapter;
+use Kraicdesign\EloquentBundle\Adapter\SchemaInspectorAdapter;
+use Kraicdesign\EloquentBundle\Contract\DatabaseConnection;
+use Kraicdesign\EloquentBundle\Contract\SchemaInspector;
 use Kraicdesign\EloquentBundle\DependencyInjection\EloquentExtension;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -43,6 +47,25 @@ final class EloquentExtensionTest extends TestCase
         self::assertSame('eloquent.capsule', (string) $container->getAlias(Capsule::class));
         self::assertSame('eloquent.connection', (string) $container->getAlias(ConnectionInterface::class));
         self::assertSame('eloquent.connection', (string) $container->getAlias(Connection::class));
+        self::assertSame('eloquent.database_connection', (string) $container->getAlias(DatabaseConnection::class));
+        self::assertSame('eloquent.schema_inspector', (string) $container->getAlias(SchemaInspector::class));
+        self::assertSame(DatabaseConnectionAdapter::class, $container->getDefinition('eloquent.database_connection')->getClass());
+        self::assertSame(SchemaInspectorAdapter::class, $container->getDefinition('eloquent.schema_inspector')->getClass());
+    }
+
+    public function testContractAndLegacyAliasesResolve(): void
+    {
+        $container = $this->load();
+        $container->setParameter('kernel.project_dir', __DIR__);
+        foreach ([DatabaseConnection::class, SchemaInspector::class, ConnectionInterface::class, Connection::class] as $type) {
+            $container->getAlias($type)->setPublic(true);
+        }
+        $container->compile();
+
+        self::assertInstanceOf(DatabaseConnectionAdapter::class, $container->get(DatabaseConnection::class));
+        self::assertInstanceOf(SchemaInspectorAdapter::class, $container->get(SchemaInspector::class));
+        self::assertInstanceOf(Connection::class, $container->get(ConnectionInterface::class));
+        self::assertSame($container->get(ConnectionInterface::class), $container->get(Connection::class));
     }
 
     public function testRegistersMigrationCommandsAsConsoleCommands(): void

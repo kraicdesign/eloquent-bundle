@@ -77,6 +77,8 @@ The bundle registers these services, all private, so you type-hint them normally
 
 | Type-hint | Resolves to |
 | --- | --- |
+| `Kraicdesign\EloquentBundle\Contract\DatabaseConnection` | the recommended, focused default-connection contract |
+| `Kraicdesign\EloquentBundle\Contract\SchemaInspector` | the recommended schema-inspection contract |
 | `Illuminate\Database\ConnectionInterface` | the default connection |
 | `Illuminate\Database\Connection` | the default connection |
 | `Illuminate\Database\Capsule\Manager` | the Capsule itself |
@@ -96,6 +98,33 @@ final class UserRepository
     }
 }
 ```
+
+For application services, prefer `DatabaseConnection`. It exposes the commonly
+used query and transaction operations together with `getSchemaBuilder()`, whose
+`SchemaInspector` result provides `hasTable()` and `hasColumn()` without coupling
+callers to Illuminate's large concrete connection and schema-builder classes.
+
+```php
+use Kraicdesign\EloquentBundle\Contract\DatabaseConnection;
+
+final class TagRepository
+{
+    public function __construct(private readonly DatabaseConnection $db)
+    {
+    }
+
+    public function supportsVisibility(): bool
+    {
+        return $this->db->getSchemaBuilder()->hasColumn('pc_tags', 'show_to_all_pcs');
+    }
+}
+```
+
+The existing Illuminate connection type-hints remain available and resolve
+exactly as before. The focused contracts are intentionally not wrappers around
+the entire Illuminate query API: `table()` returns
+`Illuminate\Database\Query\Builder`, and `raw()` returns
+`Illuminate\Database\Query\Expression` by design.
 
 ### Eloquent models
 
