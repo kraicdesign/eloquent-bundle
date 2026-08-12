@@ -44,7 +44,7 @@ interface DatabaseConnection
      */
     public function select(string $query, array $bindings = [], bool $useReadPdo = true): array;
 
-    public function getPdo(): PDO;
+    public function getPdo(): ?PDO;
 
     /** @return mixed|false */
     public function reconnect(): mixed;

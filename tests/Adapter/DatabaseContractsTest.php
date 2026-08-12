@@ -148,6 +148,20 @@ final class DatabaseContractsTest extends TestCase
         self::assertFalse($inspector->hasColumn('pc_tags', 'missing'));
     }
 
+    public function testGetPdoReturnsNullAfterDisconnectWithoutReconnecting(): void
+    {
+        $capsule = new Capsule();
+        $capsule->addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
+        $connection = $capsule->getConnection();
+        $adapter = new DatabaseConnectionAdapter($connection);
+
+        self::assertInstanceOf(PDO::class, $adapter->getPdo());
+
+        $connection->disconnect();
+
+        self::assertNull($adapter->getPdo());
+    }
+
     /**
      * @param class-string $adapterClass
      * @param class-string $delegateClass

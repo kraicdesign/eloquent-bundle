@@ -58,7 +58,7 @@ final readonly class DatabaseConnectionAdapter implements DatabaseConnection
         return $this->connection->select($query, $bindings, $useReadPdo);
     }
 
-    public function getPdo(): PDO
+    public function getPdo(): ?PDO
     {
         return $this->connection->getPdo();
     }
